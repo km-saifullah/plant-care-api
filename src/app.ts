@@ -4,6 +4,7 @@ import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
 import { swaggerDocs } from "./config/swagger";
+import routes from "./routes";
 
 const app = express();
 
@@ -28,6 +29,9 @@ app.get("/", (req, res) => {
     message: "🌱 Plant Care API is running.",
   });
 });
+
+// plants routes
+app.use("/api/v1", routes);
 
 // api doc
 swaggerDocs(app);

@@ -1,18 +1,15 @@
 import { Response } from "express";
 
-interface IResponse<T> {
-  statusCode: number;
-  success: boolean;
-  message: string;
-  data?: T;
-}
+import { IApiResponse } from "../interfaces/apiResponse";
 
-export const sendResponse = <T>(res: Response, payload: IResponse<T>) => {
-  const { statusCode, success, message, data } = payload;
+export const sendResponse = <T>(res: Response, payload: IApiResponse<T>) => {
+  res.status(payload.statusCode).json({
+    success: payload.success,
 
-  res.status(statusCode).json({
-    success,
-    message,
-    data,
+    message: payload.message,
+
+    meta: payload.meta,
+
+    data: payload.data,
   });
 };

@@ -1,8 +1,15 @@
-import { Request, Response } from "express";
+import { RequestHandler } from "express";
 
-export const notFound = (req: Request, res: Response) => {
+export const notFound: RequestHandler = (req, res) => {
   res.status(404).json({
     success: false,
-    message: `Route ${req.originalUrl} not found.`,
+    message: `${req.originalUrl} not found.`,
+
+    errorMessages: [
+      {
+        path: req.originalUrl,
+        message: "API endpoint not found.",
+      },
+    ],
   });
 };

@@ -1,61 +1,88 @@
-import { NextFunction, Request, Response } from "express";
-import { ZodError } from "zod";
+import { ErrorRequestHandler } from "express";
 import mongoose from "mongoose";
-import { AppError } from "../utils/AppError";
+import { ZodError } from "zod";
 
-export const errorHandler = (
-  error: any,
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  let statusCode = 500;
+import HttpStatus from "../constants/httpStatus";
+import AppError from "../utils/AppError";
+
+import handleCastError from "../errors/handleCastError";
+import handleDuplicateError from "../errors/handleDuplicateError";
+import handleValidationError from "../errors/handleValidationError";
+import handleZodError from "../errors/handleZodError";
+import handleGenericError from "../errors/handleGenericError";
+
+export const errorHandler: ErrorRequestHandler = (error, req, res, next) => {
+  let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
 
   let message = "Something went wrong.";
 
-  let errors: any[] = [];
+  let errorMessages = [
+    {
+      path: "",
+      message,
+    },
+  ];
 
-  // Custom Error
   if (error instanceof AppError) {
     statusCode = error.statusCode;
+
     message = error.message;
-  }
 
-  // Zod Error
-  else if (error instanceof ZodError) {
-    statusCode = 400;
+    errorMessages = [
+      {
+        path: "",
+        message,
+      },
+    ];
+  } else if (error instanceof ZodError) {
+    const simplified = handleZodError(error);
 
-    message = "Validation Error";
+    statusCode = simplified.statusCode;
 
-    errors = error.issues.map((issue) => ({
-      field: issue.path.join("."),
-      message: issue.message,
-    }));
-  }
+    message = simplified.message;
 
-  // Invalid Mongo ObjectId
-  else if (error instanceof mongoose.Error.CastError) {
-    statusCode = 400;
+    errorMessages = simplified.errorMessages;
+  } else if (error instanceof mongoose.Error.CastError) {
+    const simplified = handleCastError(error);
 
-    message = "Invalid ID";
-  }
+    statusCode = simplified.statusCode;
 
-  // Mongo Validation
-  else if (error instanceof mongoose.Error.ValidationError) {
-    statusCode = 400;
+    message = simplified.message;
 
-    message = "Database Validation Error";
+    errorMessages = simplified.errorMessages;
+  } else if (error instanceof mongoose.Error.ValidationError) {
+    const simplified = handleValidationError(error);
 
-    errors = Object.values(error.errors).map((err) => ({
-      field: err.path,
-      message: err.message,
-    }));
+    statusCode = simplified.statusCode;
+
+    message = simplified.message;
+
+    errorMessages = simplified.errorMessages;
+  } else if (error.code === 11000) {
+    const simplified = handleDuplicateError(error);
+
+    statusCode = simplified.statusCode;
+
+    message = simplified.message;
+
+    errorMessages = simplified.errorMessages;
+  } else if (error instanceof Error) {
+    const simplified = handleGenericError(error);
+
+    statusCode = simplified.statusCode;
+
+    message = simplified.message;
+
+    errorMessages = simplified.errorMessages;
   }
 
   res.status(statusCode).json({
     success: false,
+
     message,
-    errors,
+
+    errorMessages,
+
     stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
   });
 };

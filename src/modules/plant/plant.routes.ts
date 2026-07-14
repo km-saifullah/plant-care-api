@@ -1,6 +1,9 @@
 import { Router } from "express";
-import * as PlantController from "./plant.controller";
+
+import { PlantController } from "./plant.controller";
+
 import { validateRequest } from "../../middleware/validateRequest";
+
 import { createPlantSchema, updatePlantSchema } from "./plant.validation";
 
 const router = Router();

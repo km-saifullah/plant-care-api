@@ -1,63 +1,78 @@
 import { Request, Response } from "express";
 
-import { PlantService } from "./plant.service";
+import HttpStatus from "../../constants/httpStatus";
 
 import { catchAsync } from "../../utils/catchAsync";
-
 import { sendResponse } from "../../utils/sendResponse";
 
-export const createPlant = catchAsync(async (req: Request, res: Response) => {
+import { PlantService } from "./plant.service";
+import { PlantMessages } from "./plant.messages";
+
+const createPlant = catchAsync(async (req: Request, res: Response) => {
   const result = await PlantService.createPlant(req.body);
 
   sendResponse(res, {
-    statusCode: 201,
+    statusCode: HttpStatus.CREATED,
     success: true,
-    message: "Plant created successfully",
+    message: PlantMessages.CREATED,
     data: result,
   });
 });
 
-export const getAllPlants = catchAsync(async (req: Request, res: Response) => {
+const getAllPlants = catchAsync(async (req: Request, res: Response) => {
   const result = await PlantService.getAllPlants();
 
   sendResponse(res, {
-    statusCode: 200,
+    statusCode: HttpStatus.OK,
     success: true,
-    message: "Plants retrieved successfully",
+    message: PlantMessages.FETCHED_ALL,
     data: result,
   });
 });
 
-export const getSinglePlant = catchAsync(
-  async (req: Request, res: Response) => {
-    const result = await PlantService.getSinglePlant(req.params.id);
+const getSinglePlant = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
 
-    sendResponse(res, {
-      statusCode: 200,
-      success: true,
-      message: "Plant retrieved successfully",
-      data: result,
-    });
-  },
-);
-
-export const updatePlant = catchAsync(async (req: Request, res: Response) => {
-  const result = await PlantService.updatePlant(req.params.id, req.body);
+  const result = await PlantService.getSinglePlant(id);
 
   sendResponse(res, {
-    statusCode: 200,
+    statusCode: HttpStatus.OK,
     success: true,
-    message: "Plant updated successfully",
+    message: PlantMessages.FETCHED_ONE,
     data: result,
   });
 });
 
-export const deletePlant = catchAsync(async (req: Request, res: Response) => {
-  await PlantService.deletePlant(req.params.id);
+const updatePlant = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  const result = await PlantService.updatePlant(id, req.body);
 
   sendResponse(res, {
-    statusCode: 200,
+    statusCode: HttpStatus.OK,
     success: true,
-    message: "Plant deleted successfully",
+    message: PlantMessages.UPDATED,
+    data: result,
   });
 });
+
+const deletePlant = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  await PlantService.deletePlant(id);
+
+  sendResponse(res, {
+    statusCode: HttpStatus.OK,
+    success: true,
+    message: PlantMessages.DELETED,
+    data: null,
+  });
+});
+
+export const PlantController = {
+  createPlant,
+  getAllPlants,
+  getSinglePlant,
+  updatePlant,
+  deletePlant,
+};

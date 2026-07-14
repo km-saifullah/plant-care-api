@@ -1,16 +1,15 @@
-import swaggerJsdoc from "swagger-jsdoc";
-import swaggerUi from "swagger-ui-express";
 import { Express } from "express";
-import swaggerDefinition from "../docs/docs";
 
-const options = {
-  definition: swaggerDefinition,
+import swaggerUI from "swagger-ui-express";
 
-  apis: ["./src/modules/**/*.ts"],
-};
-
-const swaggerSpec = swaggerJsdoc(options);
+import { swaggerDocument } from "../docs/docs";
 
 export const swaggerDocs = (app: Express) => {
-  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  app.use(
+    "/api-docs",
+
+    swaggerUI.serve,
+
+    swaggerUI.setup(swaggerDocument),
+  );
 };
